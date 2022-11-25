@@ -1,0 +1,58 @@
+name: 'Extract Clients - Vault'
+description: 'Extract Clients - Vault'
+author: 'Emmanuel Sarpong <esarpong51@gmail.com>'
+branding:
+    icon: 'anchor'
+    color: 'blue'
+
+inputs:
+    registry:
+        description: 'Server address of Docker registry. If not set then will default to Docker Hub'
+        required: false
+    username:
+        description: 'Username used to log against the Docker registry'
+        required: true
+    password:
+        description: 'Password or personal access token used to log against the Docker registry'
+        required: true
+    context:
+        description: "Build's context is the set of files located in the specified PATH or URL"
+        required: false
+    file:
+        description: "Path to the Dockerfile (default {context}/Dockerfile)"
+        required: false
+    labels:
+        description: "List of metadata for an image"
+        required: false
+    tags:
+        description: "List of tags (eg: user/app:latest, user/app:1.0.0)"
+        required: true
+    push:
+        description: Whether to push image or to do a dry-run (defaults to false)
+        required: false
+
+runs:
+    using: "composite"
+    steps:
+
+        -   name: Set up QEMU
+            uses: docker/setup-qemu-action@v2
+
+        -   name: Set up Docker Buildx
+            uses: docker/setup-buildx-action@v2
+
+        -   name: Login to Docker Hub
+            uses: docker/login-action@v2
+            with:
+                registry: ${{ inputs.registry }}
+                username: ${{ inputs.username }}
+                password: ${{ inputs.password }}
+
+        -   name: Build and push
+            uses: docker/build-push-action@v3
+            with:
+                push: ${{ inputs.push }}
+                context: ${{ inputs.context }}
+                file: ${{ inputs.file }}
+                labels: ${{ inputs.labels }}
+                tags: ${{ inputs.tags }}

@@ -1,0 +1,107 @@
+name: Provision Cluster
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+
+    generate_matrix:
+
+        name: "Assess Workflows"
+
+        runs-on: ubuntu-latest
+
+        outputs:
+            matrix: "{\"path\": ${{ steps.generate_matrix.outputs.matrix }} }"
+
+        steps:
+            -   name: Checkout 🛎
+                uses: actions/checkout@master
+
+            -   name: Setup node env 🏗
+                uses: actions/setup-node@v2.1.2
+                with:
+                    node-version: 14
+                    check-latest: true
+
+            -   name: Install dependencies 👨🏻‍💻
+                run: npm install
+                working-directory: ./matrix
+
+            -   name: Generate matrix 🖌
+                id: generate_matrix
+                uses: ./matrix
+                with:
+                    filter: ./(\w+)/action.yaml
+                    default-to-all: true
+
+    releases:
+
+        needs: [ generate_matrix ]
+
+        strategy:
+            matrix: ${{fromJson(needs.generate_matrix.outputs.matrix)}}
+            fail-fast: false
+
+        name: "Generate docs \"${{ matrix.path }}\""
+
+        runs-on: ubuntu-latest
+
+        env:
+            branch: documentations
+
+        steps:
+            -   uses: actions/checkout@v3
+
+            -   name: Setup node env 🏗
+                uses: actions/setup-node@v2.1.2
+                with:
+                    node-version: 14
+                    check-latest: true
+
+            -   name: Install dependencies 👨🏻‍💻
+                run: npm install
+
+            -   name: Create markdown file (if not exists)
+                run: |
+                    touch $FILE | true
+                working-directory: docs
+                env:
+                    file: "${{ matrix.path }}.md"
+
+            -   name: Generate docs
+                run: |
+                    npm run docs -- -a $PATH/action.yml -u docs/$FILE
+                env:
+                    PATH: "${{ matrix.path }}"
+                    FILE: "${{ matrix.path }}.md"
+
+            -   name: Checkout changes into new branch
+                id: commit
+                uses: stefanzweifel/git-auto-commit-action@v4
+                with:
+                    commit_message: "Apply automatic doc changes"
+                    branch: ${{ env.branch }}
+                    create_branch: true
+                    skip_dirty_check: false
+                    push_options: '--force'
+
+            -   name: Creating PR if changes
+                if: steps.commit.outputs.changes_detected == 'true'
+                uses: devops-infra/action-pull-request@v0.5.3
+                with:
+                    github_token: "${{ secrets.GITHUB_TOKEN }}"
+                    source_branch: "${{ env.branch }}"
+                    target_branch: main
+                    title: "documentations update"
+                    get_diff: true
+                    label: documentations
+                    body: "**Automated pull request**"
+#                working-directory: "${{ inputs.destination }}"
+#                shell: bash
+#                env:
+#                    PR_NAME: "${{ inputs.commitMessage }}"
+#                    BRANCH: ${{ env.branch }}
+#                run: |
+#                    gh pr create -t ${BRANCH} -b "${PR_NAME}" -B main -H ${BRANCH}

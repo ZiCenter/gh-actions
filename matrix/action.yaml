@@ -1,0 +1,30 @@
+name: 'Matrix'
+description: 'Generates a matrix from git changes using a regex-based filter'
+author: 'Emmanuel Oppong-Sarpong <esarpong51@gmail.com>'
+
+inputs:
+    base:
+        description: |
+            Git base reference, can be a branch name or a commit hash. The change list will be compared to the base.
+            Will default to the last commit of the current branch
+        required: false
+        default: ${{ github.ref }}
+    filter:
+        description: A regex expression to test against changes
+        required: true
+    default-to-all:
+        description: Default output in absence of matches
+        required: false
+        default: "false"
+
+outputs:
+    matrix:
+        description: An stringified array for each regex match that contains the first capturing group
+
+runs:
+    using: 'node12'
+    main: 'main.js'
+
+branding:
+    color: blue
+    icon: filter
