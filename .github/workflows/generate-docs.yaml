@@ -68,7 +68,7 @@ jobs:
                     touch $FILE | true
                 working-directory: docs
                 env:
-                    file: "${{ matrix.path }}.md"
+                    FILE: "${{ matrix.path }}.md"
 
             -   name: Generate docs
                 working-directory: "${{ matrix.path }}"
