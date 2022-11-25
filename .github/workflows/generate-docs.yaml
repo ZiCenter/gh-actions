@@ -87,6 +87,7 @@ jobs:
                     skip_dirty_check: false
                     push_options: '--force'
                     file_pattern: docs/*.md
+                    disable_globbing: true
 
             -   name: Creating PR if changes
                 if: steps.commit.outputs.changes_detected == 'true'
