@@ -33,7 +33,7 @@ jobs:
                 id: generate_matrix
                 uses: ./matrix
                 with:
-                    filter: ./(.+)/action.yaml
+                    filter: ./(.+)/action\.ya?ml
                     default-to-all: true
 
     releases:
@@ -71,10 +71,10 @@ jobs:
                     file: "${{ matrix.path }}.md"
 
             -   name: Generate docs
+                working-directory: "${{ matrix.path }}"
                 run: |
-                    npm run docs -- -a $DIR/action.yml -u docs/$FILE
+                    npm run docs -- -u ../docs/$FILE
                 env:
-                    DIR: "${{ matrix.path }}"
                     FILE: "${{ matrix.path }}.md"
 
             -   name: Checkout changes into new branch
