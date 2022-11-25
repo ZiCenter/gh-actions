@@ -71,10 +71,10 @@ jobs:
                     FILE: "${{ matrix.path }}.md"
 
             -   name: Generate docs
-                working-directory: "${{ matrix.path }}"
                 run: |
-                    npm run --prefix .. docs -- -u ../docs/$FILE
+                    npm run docs -- -a $DIR/action.yml -u docs/$FILE
                 env:
+                    DIR: "${{ matrix.path }}"
                     FILE: "${{ matrix.path }}.md"
 
             -   name: Checkout changes into new branch
